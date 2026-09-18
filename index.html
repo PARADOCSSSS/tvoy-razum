@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d1a">
+<title>Твой Разум</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:#0d0d1a;color:#e0e0e0;position:fixed;width:100%;height:100%}
+
+/* ЗАСТАВКА */
+#splash{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#2a1a5a,#0d0d1a 70%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease;overflow:hidden}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,#7b68ee55,transparent 70%);animation:splashPulse 3s ease-in-out infinite}
+@keyframes splashPulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.3);opacity:.9}}
+.brain-wrap{position:relative;width:200px;height:200px;animation:brainFloat 2.5s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(123,104,238,.9))}
+@keyframes brainFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-15px) scale(1.05)}}
+.brain-svg{width:100%;height:100%}
+.pulse{animation:pulseGlow 1.5s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{opacity:.4}50%{opacity:1}}
+.splash-title{position:absolute;bottom:100px;font-size:30px;font-weight:800;background:linear-gradient(135deg,#b8aef5,#7b68ee,#5a4fcf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:3px;opacity:0;animation:titleFade 1s ease 1.5s forwards}
+@keyframes titleFade{to{opacity:1}}
+.splash-sub{position:absolute;bottom:70px;font-size:11px;color:#888;letter-spacing:2px;opacity:0;animation:titleFade 1s ease 2s forwards}
+
+/* ОСНОВА */
+.screen{display:none;flex-direction:column;height:100%;width:100%;position:absolute;top:0;left:0}
+.screen.active{display:flex}
+
+/* ХЕДЕР */
+.header{display:flex;align-items:center;padding:12px 16px;background:linear-gradient(135deg,#1a1a3a,#16162a);border-bottom:1px solid #2a2a4a;flex-shrink:0;gap:12px}
+.brain-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7b68ee,#5a4fcf,#4a3abf);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(123,104,238,.5)}
+.header-info{flex:1;min-width:0}
+.header-title{font-size:17px;font-weight:800;background:linear-gradient(135deg,#fff,#b8aef5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.5px}
+.header-status{font-size:11px;color:#4caf50;margin-top:2px;display:flex;align-items:center;gap:5px}
+.header-status::before{content:'';width:7px;height:7px;background:#4caf50;border-radius:50%;box-shadow:0 0 8px #4caf50;animation:statusBlink 2s infinite}
+@keyframes statusBlink{0%,100%{opacity:1}50%{opacity:.4}}
+.clear-btn{width:38px;height:38px;border:none;border-radius:50%;background:linear-gradient(135deg,#2a2a4a,#23233a);color:#7b68ee;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ПЕРЕКЛЮЧАТЕЛЬ */
+.mode-toggle{display:flex;gap:8px;padding:10px 14px 0;background:linear-gradient(135deg,#1a1a3a,#16162a);flex-shrink:0}
+.mode-btn{flex:1;padding:11px 14px;border:none;border-radius:12px;background:#23233a;color:#888;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.5px}
+.mode-btn.active{background:linear-gradient(135deg,#7b68ee,#5a4fcf);color:#fff;box-shadow:0 4px 15px rgba(123,104,238,.4);transform:scale(1.02)}
+.mode-btn:active{transform:scale(.97)}
+.mode-btn .mode-emoji{font-size:16px}
+
+/* ЧАТ */
+.messages{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(circle at 50% 30%,#15152a,#0d0d1a)}
+.messages::-webkit-scrollbar{width:3px}
+.messages::-webkit-scrollbar-thumb{background:#3a3a5a;border-radius:2px}
+.msg{max-width:88%;padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.55;word-wrap:break-word;animation:msgIn .3s cubic-bezier(.4,0,.2,1)}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,#7b68ee,#5a4fcf);color:#fff;border-bottom-right-radius:6px;box-shadow:0 4px 15px rgba(123,104,238,.35)}
+.msg.ai{align-self:flex-start;background:linear-gradient(135deg,#1e1e38,#23233a);color:#e8e8f0;border-bottom-left-radius:6px;border-left:3px solid #7b68ee;box-shadow:0 4px 15px rgba(0,0,0,.3)}
+.msg.ai .ai-label{font-size:10px;color:#9b8fee;font-weight:800;letter-spacing:1.5px;margin-bottom:6px;display:flex;align-items:center;gap:5px;text-transform:uppercase}
+.msg pre{background:#0d0d1a;padding:12px;border-radius:10px;overflow-x:auto;margin:8px 0;font-size:12px;border:1px solid #2a2a4a;color:#b8aef5}
+.msg code{background:#0d0d1a;padding:2px 7px;border-radius:5px;font-family:monospace;font-size:13px;color:#9b8fee;border:1px solid #2a2a4a}
+.msg img{max-width:100%;border-radius:12px;margin-top:8px;display:block;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.msg video{max-width:100%;border-radius:12px;margin-top:8px;display:block;background:#000;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+
+/* ПЕЧАТАЕТ */
+.typing{display:flex;gap:5px;padding:16px 20px;align-self:flex-start;background:linear-gradient(135deg,#1e1e38,#23233a);border-radius:18px;border-bottom-left-radius:6px;border-left:3px solid #7b68ee}
+.typing span{width:9px;height:9px;background:linear-gradient(135deg,#7b68ee,#9b8fee);border-radius:50%;animation:typingBounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-8px);opacity:1}}
+
+/* ГЕНЕРАЦИЯ */
+.gen-box{display:flex;flex-direction:column;gap:10px;padding:18px 20px;align-self:flex-start;background:linear-gradient(135deg,#1e1e38,#23233a);border-radius:18px;border-bottom-left-radius:6px;border-left:3px solid #7b68ee;min-width:240px;animation:msgIn .3s ease}
+.gen-box .g-label{font-size:11px;color:#9b8fee;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.gen-box .g-timer{font-size:26px;font-weight:800;background:linear-gradient(135deg,#fff,#b8aef5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gen-box .g-sub{font-size:11px;color:#888}
+.gen-box .g-progress{height:5px;background:#0d0d1a;border-radius:3px;overflow:hidden;margin-top:6px}
+.gen-box .g-progress-fill{height:100%;background:linear-gradient(90deg,#7b68ee,#9b8fee,#5a4fcf);border-radius:3px;width:0%;animation:progressPulse 2.5s ease-in-out infinite}
+@keyframes progressPulse{0%{width:5%}50%{width:60%}100%{width:95%}}
+
+/* ПУСТОЕ СОСТОЯНИЕ */
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:30px 24px;text-align:center}
+.welcome-icon{font-size:80px;margin-bottom:20px;filter:drop-shadow(0 0 30px rgba(123,104,238,.7));animation:brainFloat 3s ease-in-out infinite}
+.welcome h2{font-size:22px;font-weight:800;background:linear-gradient(135deg,#fff,#b8aef5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+.welcome p{font-size:13px;color:#999;line-height:1.7;margin-bottom:24px;max-width:320px}
+.suggestions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:350px}
+.sugg{padding:14px 18px;background:linear-gradient(135deg,#1a1a3a,#1e1e38);border:1px solid #2a2a4a;border-radius:14px;color:#c9c1f5;font-size:13px;cursor:pointer;text-align:left;transition:.2s;display:flex;align-items:center;gap:10px}
+.sugg:active{background:linear-gradient(135deg,#23233a,#2a2a4a);border-color:#7b68ee;transform:scale(.98)}
+.sugg .sugg-emoji{font-size:18px}
+
+/* ИНПУТ */
+.input-area{display:flex;align-items:flex-end;padding:10px 12px;background:linear-gradient(135deg,#1a1a3a,#16162a);border-top:1px solid #2a2a4a;gap:8px;flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+#msgInput{flex:1;padding:12px 18px;border:1px solid #2a2a4a;border-radius:22px;background:#0d0d1a;color:#fff;font-size:14px;outline:none;min-width:0;max-height:120px;resize:none;font-family:inherit;line-height:1.4}
+#msgInput:focus{border-color:#7b68ee;box-shadow:0 0 0 3px rgba(123,104,238,.15)}
+#msgInput::placeholder{color:#666}
+#sendBtn{width:46px;height:46px;border:none;border-radius:50%;background:linear-gradient(135deg,#7b68ee,#5a4fcf);color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 4px 18px rgba(123,104,238,.5)}
+#sendBtn:active{transform:scale(.9)}
+#sendBtn:disabled{opacity:.4;box-shadow:none}
+
+.fly-dove{position:fixed;font-size:24px;z-index:9998;pointer-events:none}
+@keyframes flyAcross{from{left:-60px}to{left:110vw}}
+</style>
+</head>
+<body>
+
+<div id="splash">
+    <div class="splash-glow"></div>
+    <div class="brain-wrap">
+        <svg class="brain-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#7b68ee" stop-opacity=".6"/>
+                    <stop offset="100%" stop-color="#7b68ee" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#d8d0ff"/>
+                    <stop offset="50%" stop-color="#b8aef5"/>
+                    <stop offset="100%" stop-color="#7b68ee"/>
+                </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="95" fill="url(#bg)" class="pulse"/>
+            <path d="M 60 90 Q 45 70 65 55 Q 70 35 95 40 Q 120 30 135 50 Q 160 50 160 75 Q 175 90 160 110 Q 165 135 140 140 Q 135 160 110 158 Q 95 170 80 158 Q 55 160 50 140 Q 30 130 40 110 Q 30 95 45 88 Z"
+                  fill="url(#brainGrad)" stroke="#5a4fcf" stroke-width="2.5"/>
+            <path d="M 65 90 Q 80 80 90 95 Q 100 85 115 95 Q 130 85 140 100" stroke="#1a1a3a" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>
+            <path d="M 60 115 Q 75 105 90 120 Q 105 110 120 120 Q 135 110 150 122" stroke="#1a1a3a" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>
+            <path d="M 75 135 Q 90 128 105 138 Q 120 128 135 138" stroke="#1a1a3a" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>
+            <circle cx="70" cy="55" r="4" fill="#fff" class="pulse"/>
+            <circle cx="150" cy="80" r="3" fill="#fff" class="pulse"/>
+            <circle cx="55" cy="130" r="3" fill="#fff" class="pulse"/>
+            <circle cx="145" cy="140" r="3" fill="#fff" class="pulse"/>
+        </svg>
+    </div>
+    <div class="splash-title">Твой Разум</div>
+    <div class="splash-sub">НЕЙРОСЕТЬ В КАРМАНЕ</div>
+</div>
+
+<div class="screen active" id="chatScreen">
+    <div class="header">
+        <div class="brain-avatar">🧠</div>
+        <div class="header-info">
+            <div class="header-title">Твой Разум</div>
+            <div class="header-status" id="status">на связи</div>
+        </div>
+        <button class="clear-btn" id="clearBtn">🗑</button>
+    </div>
+
+    <div class="mode-toggle">
+        <button class="mode-btn active" id="modeChat"><span class="mode-emoji">💬</span> Чат</button>
+        <button class="mode-btn" id="modeImage"><span class="mode-emoji">🖼️</span> Фото</button>
+        <button class="mode-btn" id="modeVideo"><span class="mode-emoji">🎬</span> Видео</button>
+    </div>
+
+    <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+            <div class="welcome-icon">🧠</div>
+            <h2>Спрашивай чё угодно</h2>
+            <p>Чат, генерация фото и видео. Всё бесплатно, без ключей и регистрации.</p>
+            <div class="suggestions">
+                <div class="sugg" data-q="Привет! Расскажи коротко о себе."><span class="sugg-emoji">👋</span> Привет, кто ты?</div>
+                <div class="sugg" data-q="Как приготовить яичницу? Кратко и по делу."><span class="sugg-emoji">🍳</span> Как пожарить яичницу?</div>
+                <div class="sugg" data-q="Напиши короткое смешное стихотворение про голубя."><span class="sugg-emoji">🕊️</span> Стих про голубя</div>
+                <div class="sugg" data-q="Объясни квантовую запутанность простыми словами."><span class="sugg-emoji">⚛️</span> Квантовая запутанность</div>
+            </div>
+        </div>
+    </div>
+    <div class="input-area">
+        <textarea id="msgInput" rows="1" placeholder="Спроси что-нибудь..."></textarea>
+        <button id="sendBtn">➤</button>
+    </div>
+</div>
+
+<script src="https://js.puter.com/v2/"></script>
+
+<script>
+(function(){
+    var messagesEl = document.getElementById('messages');
+    var welcomeEl = document.getElementById('welcome');
+    var msgInput = document.getElementById('msgInput');
+    var sendBtn = document.getElementById('sendBtn');
+    var clearBtn = document.getElementById('clearBtn');
+    var statusEl = document.getElementById('status');
+    var splash = document.getElementById('splash');
+    var modeChat = document.getElementById('modeChat');
+    var modeImage = document.getElementById('modeImage');
+    var modeVideo = document.getElementById('modeVideo');
+
+    var history = JSON.parse(localStorage.getItem('ai_history') || '[]');
+    var busy = false;
+    var currentMode = 'chat';
+
+    setTimeout(function(){
+        splash.classList.add('hide');
+        setTimeout(function(){ splash.style.display = 'none'; }, 700);
+        restoreHistory();
+    }, 2500);
+
+    function restoreHistory(){
+        if(history.length === 0) return;
+        welcomeEl.style.display = 'none';
+        history.forEach(function(h){
+            if(h.role === 'ai' && h.type === 'image') return;
+            if(h.role === 'ai' && h.type === 'video') return;
+            addBubble(h.role === 'user' ? 'user' : 'ai', h.content, h.type);
+        });
+        scrollBottom();
+    }
+
+    function setMode(mode){
+        currentMode = mode;
+        [modeChat, modeImage, modeVideo].forEach(function(b){ b.classList.remove('active'); });
+        if(mode === 'chat'){ modeChat.classList.add('active'); msgInput.placeholder = 'Спроси что-нибудь...'; }
+        if(mode === 'image'){ modeImage.classList.add('active'); msgInput.placeholder = 'Опиши фото: кот в космосе...'; }
+        if(mode === 'video'){ modeVideo.classList.add('active'); msgInput.placeholder = 'Опиши видео: голубь летит над морем...'; }
+    }
+    modeChat.addEventListener('click', function(){ setMode('chat'); });
+    modeImage.addEventListener('click', function(){ setMode('image'); });
+    modeVideo.addEventListener('click', function(){ setMode('video'); });
+
+    sendBtn.addEventListener('click', sendMessage);
+    msgInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+    });
+    msgInput.addEventListener('input', function(){
+        msgInput.style.height = 'auto';
+        msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
+    });
+
+    document.querySelectorAll('.sugg').forEach(function(el){
+        el.addEventListener('click', function(){
+            msgInput.value = el.dataset.q;
+            sendMessage();
+        });
+    });
+
+    clearBtn.addEventListener('click', function(){
+        if(!confirm('Стереть всю историю?')) return;
+        history = [];
+        localStorage.removeItem('ai_history');
+        messagesEl.innerHTML = '';
+        messagesEl.appendChild(welcomeEl);
+        welcomeEl.style.display = 'flex';
+    });
+
+    function sendMessage(){
+        var text = msgInput.value.trim();
+        if(!text || busy) return;
+
+        welcomeEl.style.display = 'none';
+        addBubble('user', text);
+        history.push({ role: 'user', content: text });
+        saveHistory();
+
+        msgInput.value = '';
+        msgInput.style.height = 'auto';
+        scrollBottom();
+
+        if(currentMode === 'video') generateVideo(text);
+        else if(currentMode === 'image') generateImage(text);
+        else askAI(text);
+    }
+
+    async function askAI(userText){
+        busy = true; sendBtn.disabled = true; statusEl.textContent = 'думает...';
+
+        var typing = document.createElement('div');
+        typing.className = 'typing'; typing.id = 'typing';
+        typing.innerHTML = '<span></span><span></span><span></span>';
+        messagesEl.appendChild(typing); scrollBottom();
+
+        try {
+            var contextMsgs = history.slice(-10).map(function(h){
+                return (h.role === 'user' ? 'Пользователь: ' : 'Ассистент: ') + h.content;
+            }).join('\n');
+
+            var prompt = 'Ты — дружелюбный ассистент "Твой Разум". Отвечай на русском, развёрнуто, но по делу. Можно эмодзи и код в ```.\n\n' + contextMsgs + '\n\nАссистент:';
+
+            var res = await fetch('https://text.pollinations.ai/' + encodeURIComponent(prompt) + '?model=openai&seed=' + Date.now());
+            if(!res.ok) throw new Error('HTTP ' + res.status);
+            var answer = (await res.text()).trim() || 'Пусто. Переформулируй.';
+
+            var t = document.getElementById('typing'); if(t) t.remove();
+            addBubble('ai', answer);
+            history.push({ role: 'ai', content: answer });
+            saveHistory();
+        } catch(err){
+            var t = document.getElementById('typing'); if(t) t.remove();
+            addBubble('ai', '⚠️ Ошибка: ' + err.message);
+        }
+        busy = false; sendBtn.disabled = false; statusEl.textContent = 'на связи'; scrollBottom();
+    }
+
+    async function generateImage(promptText){
+        busy = true; sendBtn.disabled = true; statusEl.textContent = 'рисует...';
+
+        var box = document.createElement('div');
+        box.className = 'gen-box';
+        box.innerHTML = '<div class="g-label">🖼️ Генерация фото</div><div class="g-sub">Секунду, рисую...</div><div class="g-progress"><div class="g-progress-fill"></div></div>';
+        messagesEl.appendChild(box); scrollBottom();
+
+        try {
+            var url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(promptText) + '?width=1024&height=1024&nologo=true&seed=' + Date.now();
+            var img = new Image();
+            await new Promise(function(resolve, reject){
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url;
+            });
+
+            box.remove();
+            var div = document.createElement('div');
+            div.className = 'msg ai';
+            div.innerHTML = '<span class="ai-label">🖼️ Фото готово</span>';
+            div.appendChild(img);
+            messagesEl.appendChild(div);
+            history.push({ role: 'ai', content: promptText, type: 'image' });
+            saveHistory();
+        } catch(err){
+            box.remove();
+            addBubble('ai', '⚠️ Фото не вышло. Попробуй ещё. Ошибка: ' + err.message);
+        }
+        busy = false; sendBtn.disabled = false; statusEl.textContent = 'на связи'; scrollBottom();
+    }
+
+    async function generateVideo(promptText){
+        busy = true; sendBtn.disabled = true; statusEl.textContent = 'генерирует видео...';
+
+        var start = Date.now();
+        var box = document.createElement('div');
+        box.className = 'gen-box'; box.id = 'videoGen';
+        box.innerHTML = '<div class="g-label">🎬 Генерация видео</div><div class="g-timer" id="vTimer">0.0 сек</div><div class="g-sub">Модель: Wan 2.2</div><div class="g-progress"><div class="g-progress-fill"></div></div>';
+        messagesEl.appendChild(box); scrollBottom();
+
+        var tInt = setInterval(function(){
+            var el = document.getElementById('vTimer');
+            if(el) el.textContent = ((Date.now() - start) / 1000).toFixed(1) + ' сек';
+        }, 100);
+
+        try {
+            var videoElement = await puter.ai.txt2vid(promptText, { model: 'wan-ai/wan2.2-t2v-a14b' });
+            clearInterval(tInt);
+            var g = document.getElementById('videoGen'); if(g) g.remove();
+
+            var div = document.createElement('div');
+            div.className = 'msg ai';
+            div.innerHTML = '<span class="ai-label">🎬 Видео готово</span>';
+            videoElement.controls = true; videoElement.autoplay = true; videoElement.loop = true;
+            div.appendChild(videoElement);
+            messagesEl.appendChild(div);
+            history.push({ role: 'ai', content: promptText, type: 'video' });
+            saveHistory();
+        } catch(err){
+            clearInterval(tInt);
+            var g = document.getElementById('videoGen'); if(g) g.remove();
+            addBubble('ai', '⚠️ Видео не вышло. Ошибка: ' + (err.message || JSON.stringify(err)));
+        }
+        busy = false; sendBtn.disabled = false; statusEl.textContent = 'на связи'; scrollBottom();
+    }
+
+    function addBubble(who, text, type){
+        var div = document.createElement('div');
+        div.className = 'msg ' + who;
+        if(who === 'ai'){
+            var label = document.createElement('span');
+            label.className = 'ai-label';
+            label.textContent = '🧠 Разум';
+            div.appendChild(label);
+        }
+        div.appendChild(renderMarkdown(text));
+        messagesEl.appendChild(div);
+    }
+
+    function renderMarkdown(text){
+        var wrap = document.createElement('span');
+        var parts = text.split(/```/);
+        parts.forEach(function(part, i){
+            if(i % 2 === 1){
+                var pre = document.createElement('pre');
+                pre.textContent = part.replace(/^[a-z]*\n/i, '');
+                wrap.appendChild(pre);
+            } else {
+                var lines = part.split('\n');
+                lines.forEach(function(line, li){
+                    var span = document.createElement('span');
+                    span.innerHTML = line
+                        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                        .replace(/\*(.+?)\*/g, '<i>$1</i>')
+                        .replace(/`([^`]+)`/g, '<code>$1</code>');
+                    wrap.appendChild(span);
+                    if(li < lines.length - 1) wrap.appendChild(document.createElement('br'));
+                });
+            }
+        });
+        return wrap;
+    }
+
+    function scrollBottom(){ setTimeout(function(){ messagesEl.scrollTop = messagesEl.scrollHeight; }, 50); }
+    function saveHistory(){
+        if(history.length > 50) history = history.slice(-50);
+        localStorage.setItem('ai_history', JSON.stringify(history));
+    }
+
+    setInterval(function(){
+        if(Math.random() > 0.85){
+            var dove = document.createElement('div');
+            dove.className = 'fly-dove';
+            dove.textContent = '🕊️';
+            dove.style.top = (Math.random() * 65) + '%';
+            dove.style.fontSize = (18 + Math.random() * 20) + 'px';
+            dove.style.animation = 'flyAcross 4s linear forwards';
+            document.body.appendChild(dove);
+            setTimeout(function(){ dove.remove(); }, 4200);
+        }
+    }, 15000);
+
+})();
+</script>
+</body>
+</html>
